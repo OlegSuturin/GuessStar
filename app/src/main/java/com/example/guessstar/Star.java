@@ -2,6 +2,8 @@ package com.example.guessstar;
 
 import android.graphics.Bitmap;
 
+import androidx.annotation.NonNull;
+
 public class Star {
     private String name;
     private Bitmap bitmap;
@@ -26,5 +28,11 @@ public class Star {
 
     public String getAddressImg() {
         return addressImg;
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return name;
     }
 }

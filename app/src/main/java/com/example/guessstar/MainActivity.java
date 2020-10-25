@@ -1,5 +1,6 @@
 package com.example.guessstar;
 
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.graphics.Bitmap;
@@ -7,9 +8,12 @@ import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -26,7 +30,12 @@ import java.util.regex.Pattern;
 public class MainActivity extends AppCompatActivity {
 
     private String urlBase = "http://www.spletnik.ru/";
-    private String urlPage = "http://www.spletnik.ru/ratings";
+    private String urlPage = "http://www.spletnik.ru/ratings?tags=%D0%BF%D1%83%D1%82%D0%B5%D1%88%D0%B5%D1%81%D1%82%D0%B2%D0%B8%D1%8F#start";
+            //"http://www.spletnik.ru/ratings?tags=%D1%8E%D0%BC%D0%BE%D1%80#start";
+            //"http://www.spletnik.ru/ratings?tags=youtube#start";
+            //"http://www.spletnik.ru/ratings?tags=%D0%BC%D0%BE%D0%B4%D0%B0#start";
+            //"http://www.spletnik.ru/ratings";
+
 
     private ArrayList<Star> arrayListStar;
     private String resultHTML;
@@ -35,11 +44,18 @@ public class MainActivity extends AppCompatActivity {
 
     ImageView imageViewStar;
     ListView listViewName;
+    int randomInt;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        ActionBar actionBar = getSupportActionBar();
+        if(actionBar != null)
+             actionBar.hide();
+
         imageViewStar = findViewById(R.id.imageViewStar);
         listViewName = findViewById(R.id.listViewName);
 
@@ -101,17 +117,33 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        //for(int i=0; i<arrayListStar.size(); i++)
-        imageViewStar.setImageBitmap(arrayListStar.get(8).getBitmap());
-
+                                //установка первоначальной случайной картинки
+        randomInt = (int)(Math.random()*arrayListStar.size());
+        imageViewStar.setImageBitmap(arrayListStar.get(randomInt).getBitmap());
+                                //создаем адаптер для размещения имен на listView
         ArrayAdapter<Star> adapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_1, arrayListStar);
-
-
+        listViewName.setAdapter(adapter);
+                                //создаем слушателя событий на клик списка имен
+        listViewName.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                        String name = arrayListStar.get(position).getName();   //выбор пользователя
+                        String nameImg = arrayListStar.get(randomInt).getName();  //картинка на экране
+                        if (name.equals(nameImg)){
+                            Toast.makeText(getApplicationContext(), "Вы угадали!", Toast.LENGTH_SHORT).show();
+                            randomInt++;      //переход на следующую картинку
+                            if (randomInt >= arrayListStar.size())
+                                                randomInt = 0;
+                            imageViewStar.setImageBitmap(arrayListStar.get(randomInt).getBitmap());
+                        }else {
+                            Toast.makeText(getApplicationContext(), "Не правильно! Попробуйте еще раз.", Toast.LENGTH_SHORT).show();
+                        }
+            }
+        });
 
     }
 
     private static class DownloadTaskImg extends AsyncTask<String, Void, Bitmap> {
-
 
         @Override
         protected Bitmap doInBackground(String... strings) {
